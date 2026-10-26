@@ -315,11 +315,9 @@ def remove_boxed(s):
 
 
 def _last_boxed_only_string(string):
-    idx = string.rfind("\\boxed")
+    idx = max(string.rfind("\\boxed"), string.rfind("\\fbox"))
     if idx < 0:
-        idx = string.rfind("\\fbox")
-        if idx < 0:
-            return None
+        return None
 
     i = idx
     left_brace_idx = None
@@ -389,6 +387,10 @@ def match_answer(response):
 def compute_score(model_output: str, ground_truth: str) -> bool:
     model_output = str(model_output)
     ground_truth = str(ground_truth)
+
+    boxed_answer = _last_boxed_only_string(model_output)
+    if "=" in ground_truth and boxed_answer == ground_truth.strip():
+        return True, True, boxed_answer
 
     is_matched, extracted_model_output = match_answer(model_output)
     format_correctness = "Step 2:" in model_output and "\\box" in model_output
